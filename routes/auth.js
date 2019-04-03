@@ -1,6 +1,5 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
 const { User, validateLogin } = require('../model/user');
@@ -18,7 +17,7 @@ router.post('/', async (req, res) => {
     
     if (!validPassword)  return res.status(400).send('Invalid email or password.');
     
-    const token = jwt.sign({sub: user._id, name: user.name, email: user.email}, process.env.SECRET_KEY);
+    const token = user.generateAuthToken();    
 
     res.send({"access_token": token});
 });

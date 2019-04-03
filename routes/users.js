@@ -3,17 +3,22 @@ const bcrypt = require('bcrypt');
 const _ = require('lodash');
 
 const { User, validate, validateUpdate } = require('../model/user');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 const SALT_ROUNDS = 10;
 
 router.get('/', async (req, res) => {
-    const users = await User.find().sort('name');
+    const users = await User.find().select('-password').sort('name');
     res.send(users);
 });
 
+router.get('/me', auth, async (req, res) => {    
+    res.send(req.user);
+});
+
 router.get('/:id', async (req, res) => {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).select('-password');
     if (!user) return res.status(404).send(`User with id ${req.params.id} does not exist`);
 
     res.send(user);
@@ -43,7 +48,7 @@ router.put('/:id', async (req, res) => {
             name: req.body.name,            
             isEnabled: req.body.isEnabled
         }, 
-        {new: true});
+        {new: true}).select('-password');
 
     if (!user) return res.status(404).send(`User with id ${req.params.id} does not exist`);
 
@@ -51,7 +56,7 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-    const user = await User.findByIdAndRemove(req.params.id);
+    const user = await User.findByIdAndRemove(req.params.id).select('-password');
     if (!user) return res.status(404).send(`User with id ${req.params.id} does not exist`);
      
     res.send(user);
